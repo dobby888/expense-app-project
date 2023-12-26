@@ -7,6 +7,10 @@ exports.getSignUp = (req, res, next) => {
 exports.postSignUp = async (req, res, next) => {
     const { name, email, password } = req.body;
 
+    if (!name || !email || !password) {
+        return res.status(400).send('All fields are required');
+    }
+
     try {
         const signUp = await SignUp.create({
             name: name,
