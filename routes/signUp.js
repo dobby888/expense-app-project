@@ -12,4 +12,4 @@ router.get('/user/signUp', signUpController.getSignUp);
 
 router.post('/user/signUp', signUpController.postSignUp);
 
-module.exports = router; 
+module.exports = router;  
