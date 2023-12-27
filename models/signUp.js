@@ -22,4 +22,4 @@ const SignUp = sequelize.define('signup', {
     }
 });
 
-module.exports = SignUp;
+module.exports = SignUp; 
