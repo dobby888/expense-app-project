@@ -1,4 +1,5 @@
 const SignUp = require('../models/signUp');
+const Sequelize = require('sequelize'); // Assuming Sequelize is used
 
 exports.getSignUp = (req, res, next) => {
     res.sendFile('signUp.html', { root: 'views' });
@@ -16,36 +17,39 @@ exports.postSignUp = async (req, res, next) => {
             name: name,
             email: email,
             password: password
-        })
-        res.redirect('/user/signUp');
-    }catch (err) {
-        console.error('Error creating slot:', err);
-        res.status(500).send('Error creating slot');
-      }
+        });
+
+        // Redirect to sign-up success page or handle as needed
+        res.redirect('/user/signUpSuccess');
+    } catch (err) {
+        console.error('Error creating signUp record:', err);
+        res.status(500).send('Error creating signUp record');
+    }
 }
 
 exports.postSignIn = async (req, res, next) => {
-    const { name, email, password } = req.body;
+    const { signInName, signInEmail, signInPassword } = req.body;
 
     try {
-        // Check if a user with the provided username or email and password exists
+        // Check if a user with the provided name or email exists
         const user = await SignUp.findOne({
             where: {
                 [Sequelize.or]: [
-                    { name: name },
-                    { email: email }
+                    { name: signInName },
+                    { email: signInEmail }
                 ]
             }
         });
 
         if (user) {
             // Log values for debugging
-            console.log('Entered username/email:', name || email);
-            console.log('Entered password:', password);
+            console.log('Entered name:', signInName);
+            console.log('Entered email:', signInEmail);
+            console.log('Entered password:', signInPassword);
             console.log('Database password:', user.password);
 
             // Check password match (modify as needed based on your encryption/hashing)
-            if (password === user.password) {
+            if (signInPassword === user.password) {
                 // User found, consider it a successful sign-in
                 res.status(200).send('Sign In successful');
             } else {

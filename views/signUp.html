@@ -4,89 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Authentication</title>
-    <!-- Include Axios library -->
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
-    <form id="signUpForm">
+    <form id="signUpForm" action="/user/signUp" method="POST">
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required autocomplete="name"><br>
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required autocomplete="email"><br>
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required><br>
-        <button type="button" onclick="submitSignUpForm()">Sign Up</button>
+        <button type="submit">Sign Up</button>
     </form>
 
-    <form id="signInForm">
-        <label for="signInNameEmail">Name/Email:</label>
-        <input type="text" id="signInNameEmail" name="signInNameEmail" required><br>
+    <form id="signInForm" action="/user/signIn" method="POST">
+        <label for="signInName">Name:</label>
+        <input type="text" id="signInName" name="signInName" required><br>
+        <label for="signInEmail">Email:</label>
+        <input type="text" id="signInEmail" name="signInEmail" required><br>
         <label for="signInPassword">Password:</label>
         <input type="password" id="signInPassword" name="signInPassword" required><br>
-        <button type="button" onclick="submitSignInForm()">Sign In (for existing users)</button>
+        <button type="submit">Sign In (for existing users)</button>
     </form>
-
-    <script>
-        // Function to submit the signUp form using Axios
-        function submitSignUpForm() {
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            // Check if any of the required fields is missing
-            if (!name || !email || !password) {
-                alert('All fields are required');
-                return;
-            }
-
-            // Prepare data for Axios
-            const data = {
-                name: name,
-                email: email,
-                password: password
-            };
-
-            // Send POST request using Axios for signUp
-            axios.post('http://localhost:8000/user/signUp', data)
-                .then(response => {
-                    // Redirect or handle success as needed
-                    window.location.href = '/user/signUp';
-                })
-                .catch(err => {
-                    console.error('Error creating signUp record:', err);
-                    // Handle error as needed
-                });
-        }
-
-        // Function to submit the signIn form using Axios
-        function submitSignInForm() {
-            const signInNameEmail = document.getElementById('signInNameEmail').value;
-            const signInPassword = document.getElementById('signInPassword').value;
-
-            // Check if any of the required fields is missing
-            if (!signInNameEmail || !signInPassword) {
-                alert('Both Name/Email and Password are required for sign-in');
-                return;
-            }
-
-            // Prepare data for Axios
-            const signInData = {
-                name: signInNameEmail,
-                email: signInNameEmail, // Assume user can sign in with name or email
-                password: signInPassword
-            };
-
-            // Send POST request using Axios for signIn
-            axios.post('http://localhost:8000/user/signIn', signInData)
-                .then(response => {
-                    // Redirect or handle success as needed
-                    window.location.href = '/user/dashboard';
-                })
-                .catch(err => {
-                    console.error('Error during sign-in:', err);
-                    alert('Error during sign-in. Please check your credentials and try again.');
-                });
-        }
-    </script>
 </body>
 </html>
