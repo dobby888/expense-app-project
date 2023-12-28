@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const Sequelize = require('sequelize');
+const bcrypt = require('bcrypt');
 
 const sequelize = require('./util/database.js');
 const SignUp = require('./models/signUp.js');
@@ -34,28 +35,32 @@ app.get('/user/auth', (req, res, next) => {
 });
 
 app.post('/user/auth', async (req, res, next) => {
-  const { email, password, authType } = req.body;
-
-  if (!email || !password || !authType) {
-    return res.status(400).send('Email, password, and authentication type are required for authentication.');
-  }
-
   try {
+    const { name, email, password, authType } = req.body;
+
+    if (!name || !email || !password || !authType) {
+      return res.status(400).send('Email, password, and authentication type are required for authentication.');
+    }
+
+    const salt = 10;
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     if (authType === 'signUp') {
       // Sign-up logic
       const existingEmail = await SignUp.findOne({ where: { email: email } });
 
       if (existingEmail) {
-        return res.status(400).send('Email is already taken. Please choose a different one.');
+        return res.status(400).send('Email or username is already taken. Please choose different ones.');
       }
 
       // No existing email, create a new SignUp record
-      const signUp = await SignUp.create({
+      await SignUp.create({
+        name: name,
         email: email,
-        password: password
+        password: hashedPassword
       });
 
-      return res.send('User registration successful.');
+      return res.status(201).json({ message: 'User registration successful.' });
     } else if (authType === 'signIn') {
       // Sign-in logic
       const user = await SignUp.findOne({ where: { email: email } });
@@ -65,8 +70,10 @@ app.post('/user/auth', async (req, res, next) => {
       }
 
       // If user exists, check password
-      if (user.password === password) {
-        return res.send('User login successful.');
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (isPasswordValid) {
+        return res.status(200).json({ message: 'User login successful.' });
       } else {
         return res.status(401).send('User not authorized. Incorrect password.');
       }
@@ -78,6 +85,8 @@ app.post('/user/auth', async (req, res, next) => {
     res.status(500).send('Error during authentication');
   }
 });
+
+
 
 sequelize
   .sync()
