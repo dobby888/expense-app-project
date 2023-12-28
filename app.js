@@ -3,10 +3,10 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const Sequelize = require('sequelize');
 const bcrypt = require('bcrypt');
-const axios = require('axios'); // Add Axios
 
 const sequelize = require('./util/database.js');
 const SignUp = require('./models/signUp.js');
+const Expense = require('./models/expense.js');
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/user/auth', (req, res, next) => {
   res.send(`
-    <form id="authForm">
+    <form id="authForm" action="/user/auth" method="POST">
       <label for="name">Name:</label>
       <input type="text" id="name" name="name" required autocomplete="name"><br>
       <label for="email">Email:</label>
@@ -30,32 +30,8 @@ app.get('/user/auth', (req, res, next) => {
       <input type="radio" id="signIn" name="authType" value="signIn">
       <label for="signIn">Sign In</label>
 
-      <button type="button" onclick="submitForm()">Submit</button>
+      <button type="submit">Submit</button>
     </form>
-
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script>
-      async function submitForm() {
-        const formData = new FormData(document.getElementById('authForm'));
-        try {
-          const response = await axios.post('/user/auth', Object.fromEntries(formData));
-          handleResponse(response.data);
-        } catch (error) {
-          console.error('Error during form submission:', error);
-        }
-      }
-
-      function handleResponse(data) {
-        if (data.success) {
-          alert(data.message);
-          if (data.authType === 'signUp') {
-            window.location.href = '/user/auth'; // Redirect to the sign-up page
-          }
-        } else {
-          alert('Error: ' + data.message);
-        }
-      }
-    </script>
   `);
 });
 
@@ -84,7 +60,8 @@ app.post('/user/auth', async (req, res, next) => {
         password: hashedPassword
       });
 
-      return res.status(201).json({ success: true, message: 'User registration successful.', authType: 'signUp' });
+      // Redirect to the addExpenses page after signup
+      res.redirect('/user/auth');
     } else if (authType === 'signIn') {
       // Sign-in logic
       const user = await SignUp.findOne({ where: { email: email } });
@@ -97,10 +74,9 @@ app.post('/user/auth', async (req, res, next) => {
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (isPasswordValid) {
-        return res.status(200).json({ success: true, message: 'User login successful.', authType: 'signIn' });
+        // Redirect to the addExpenses page after login
+        res.redirect('/user/addExpenses');
       } else {
-        console.log('Stored Hashed Password:', user.password);
-        console.log('Entered Password:', password);
         return res.status(401).json({ success: false, message: 'User not authorized. Incorrect password.' });
       }
     } else {
@@ -111,6 +87,62 @@ app.post('/user/auth', async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Error during authentication' });
   }
 });
+
+app.get('/user/addExpenses', async (req, res, next) => {
+
+  try {
+
+    const expenses = await Expense.findAll();
+
+    res.send(`
+      <form action='/user/addExpenses' method='POST'>
+        <label for="amountSpent">Amount Spent:</label>
+        <input type="number" id="amountSpent" name="amountSpent" required autocomplete="amountSpent"><br>
+        <label for="spentDes">Description:</label>
+        <input type="text" id="spentDes" name="spentDes" required autocomplete="spentDes"><br>
+        <label for="category">Category:</label>
+        <select id="category" name="category" style="width: 100%; height: 30px;">
+          <option value="education">Education</option>
+          <option value="food">Food</option>
+          <option value="medical">Medical</option>
+          <option value="family">Family</option>
+          <option value="rent">Rent</option>
+          <option value="transport">Transport</option>
+          <option value="entertainment">Entertainment</option>
+        </select><br><br>
+        <button type='submit'>Add Expense</button>
+      </form>
+      <ul id='expenseList'>
+      ${displayexpenseList(expenses)}
+      </ul>
+    `);
+  } catch (err) {
+    console.log('Error displaying expenses:', err);
+    return res.send('Error fetching expenses');
+  }
+});
+
+app.post('/user/addExpenses', async (req, res, next) => {
+  try {
+    const { amountSpent, spentDes, category } = req.body;
+
+    await Expense.create({
+      amount: amountSpent,
+      description: spentDes,
+      category: category
+    });
+
+    // Redirect to the addExpenses page after adding an expense
+    res.redirect('/user/addExpenses');
+  } catch (err) {
+    console.error('Error during expense:', err);
+    return res.status(500).json({ success: false, message: 'Error during adding expense' });
+  }
+});
+
+function displayexpenseList(expenses) {
+  return expenses.map(expense => `<li>${expense.amount}-${expense.description}-${expense.category}<li>`).join('');
+}
 
 sequelize
   .sync()
