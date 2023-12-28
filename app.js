@@ -89,11 +89,8 @@ app.post('/user/auth', async (req, res, next) => {
 });
 
 app.get('/user/addExpenses', async (req, res, next) => {
-
   try {
-
     const expenses = await Expense.findAll();
-
     res.send(`
       <form action='/user/addExpenses' method='POST'>
         <label for="amountSpent">Amount Spent:</label>
@@ -106,6 +103,7 @@ app.get('/user/addExpenses', async (req, res, next) => {
           <option value="food">Food</option>
           <option value="medical">Medical</option>
           <option value="family">Family</option>
+          <option value="grocery">Grocery</option>
           <option value="rent">Rent</option>
           <option value="transport">Transport</option>
           <option value="entertainment">Entertainment</option>
@@ -113,8 +111,9 @@ app.get('/user/addExpenses', async (req, res, next) => {
         <button type='submit'>Add Expense</button>
       </form>
       <ul id='expenseList'>
-      ${displayexpenseList(expenses)}
+        ${displayexpenseList(expenses)}
       </ul>
+      
     `);
   } catch (err) {
     console.log('Error displaying expenses:', err);
@@ -125,14 +124,11 @@ app.get('/user/addExpenses', async (req, res, next) => {
 app.post('/user/addExpenses', async (req, res, next) => {
   try {
     const { amountSpent, spentDes, category } = req.body;
-
     await Expense.create({
       amount: amountSpent,
       description: spentDes,
       category: category
     });
-
-    // Redirect to the addExpenses page after adding an expense
     res.redirect('/user/addExpenses');
   } catch (err) {
     console.error('Error during expense:', err);
@@ -140,12 +136,26 @@ app.post('/user/addExpenses', async (req, res, next) => {
   }
 });
 
+app.post('/user/deleteExpenses/:id', async (req, res, next) => {
+  try {
+    const expenseId = req.params.id;
+    await Expense.destroy({ where: { id: expenseId } });
+    res.redirect('/user/addExpenses');
+  } catch (err) {
+    console.log('Error during deleting an expense:', err);
+    return res.send('Error during expense deletion');
+  }
+});
+
 function displayexpenseList(expenses) {
-  return expenses.map(expense => `<li>${expense.amount}-${expense.description}-${expense.category}<li>`).join('');
+  return expenses.map(expense => `
+    <li>
+      ${expense.amount}-${expense.description}-${expense.category}
+      <button onclick="deleteExpenses(${expense.id})">Delete</button>
+    </li>`).join('');
 }
 
-sequelize
-  .sync()
+sequelize.sync()
   .then(() => {
     app.listen(8000, () => {
       console.log('Server is running on port 8000');
