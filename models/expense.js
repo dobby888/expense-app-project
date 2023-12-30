@@ -12,7 +12,7 @@ const Expense = sequelize.define('expense', {
         type: Sequelize.INTEGER,
         allowNull: false
     },
-    spentDes: {
+    spentDes: { 
         type: Sequelize.STRING,
         allowNull: false 
     },

@@ -12,4 +12,4 @@ router.get('/user/auth', signUpController.getAuth);
 
 router.post('/user/auth', signUpController.postAuth);
 
-module.exports = router; 
+module.exports = router;  

@@ -119,7 +119,7 @@ exports.postAuth = async (req, res, next) => {
             // Invalid action
             res.status(400).send('Invalid action');
         }
-    } catch (error) {
+    } catch (error) { 
         console.error('Error during authentication:', error);
         res.status(500).send('Error during authentication');
     }

@@ -134,20 +134,19 @@ app.post('/user/deleteExpenses/:dID', async (req, res, next) => {
 });
 
 app.get('/user/editExpenses/:eID', async (req, res, next) => {
+  const eID = req.params.eID;
+
   try {
-    const eID = req.params.eID;
-    const expense = await Expense.findByPk(eID);
+      const uniqueProduct = await Expense.findByPk(eID);
 
-    if (!expense) {
-      return res.status(404).json({ success: false, message: 'Expense not found.' });
-    }
-
-    res.json(expense);
-  } catch (err) {
-    console.log('Error during fetching expense for editing:', err);
-    return res.status(500).json({ success: false, message: 'Error during fetching expense for editing' });
+      res.send(uniqueProduct);
+  } catch (error) {
+      console.log('Error in editExpenseDetails:', error);
+      console.log(error);
   }
 });
+ 
+
 
 sequelize.sync()
   .then(() => {

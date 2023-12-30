@@ -81,11 +81,11 @@
                   document.getElementById('spentDes').value = response.data.spentDes;
                   document.getElementById('category').value = response.data.category;
       
-                  await axios.get(`http://localhost:8000/user/editExpenses/${eID}`);
+                  await axios.post(`http://localhost:8000/user/deleteExpenses/${eID}`);
                    refresh();
               } catch (err) {
                   console.log("error while editing: ",err);
-              }
+              } 
           }
       }
 
