@@ -90,31 +90,8 @@ app.post('/user/auth', async (req, res, next) => {
 
 app.get('/user/addExpenses', async (req, res, next) => {
   try {
-    const expenses = await Expense.findAll();
-    res.send(`
-      <form action='/user/addExpenses' method='POST'>
-        <label for="amountSpent">Amount Spent:</label>
-        <input type="number" id="amountSpent" name="amountSpent" required autocomplete="amountSpent"><br>
-        <label for="spentDes">Description:</label>
-        <input type="text" id="spentDes" name="spentDes" required autocomplete="spentDes"><br>
-        <label for="category">Category:</label>
-        <select id="category" name="category" style="width: 100%; height: 30px;">
-          <option value="education">Education</option>
-          <option value="food">Food</option>
-          <option value="medical">Medical</option>
-          <option value="family">Family</option>
-          <option value="grocery">Grocery</option>
-          <option value="rent">Rent</option>
-          <option value="transport">Transport</option>
-          <option value="entertainment">Entertainment</option>
-        </select><br><br>
-        <button type='submit'>Add Expense</button>
-      </form>
-      <ul id='expenseList'>
-        ${displayexpenseList(expenses)}
-      </ul>
-      
-    `);
+    // const expenses = await Expense.findAll();
+    res.sendFile('expense.html', { root: 'views' });
   } catch (err) {
     console.log('Error displaying expenses:', err);
     return res.send('Error fetching expenses');
@@ -123,10 +100,10 @@ app.get('/user/addExpenses', async (req, res, next) => {
 
 app.post('/user/addExpenses', async (req, res, next) => {
   try {
-    const { amountSpent, spentDes, category } = req.body;
+    const { spentAmount, spentDes, category } = req.body;
     await Expense.create({
-      amount: amountSpent,
-      description: spentDes,
+      spentAmount: spentAmount,
+      spentDes: spentDes,
       category: category
     });
     res.redirect('/user/addExpenses');
@@ -136,24 +113,41 @@ app.post('/user/addExpenses', async (req, res, next) => {
   }
 });
 
-app.post('/user/deleteExpenses/:id', async (req, res, next) => {
+app.get('/user/expenses', async (req, res, next) => {
   try {
-    const expenseId = req.params.id;
-    await Expense.destroy({ where: { id: expenseId } });
-    res.redirect('/user/addExpenses');
+      const data = await Expense.findAll();
+      res.json(data);
   } catch (err) {
-    console.log('Error during deleting an expense:', err);
-    return res.send('Error during expense deletion');
+      console.log("Error while fetching all expenses:", err);
   }
+})
+
+app.post('/user/deleteExpenses/:dID', async (req, res, next) => {
+  const dID = req.params.dID;
+    try {
+      await Expense.destroy({ where: { id: dID } });
+
+        res.redirect('/user/expenses');
+    } catch (err) {
+        console.log("Error while deleting expense Details with id: ", dID, err);
+    } 
 });
 
-function displayexpenseList(expenses) {
-  return expenses.map(expense => `
-    <li>
-      ${expense.amount}-${expense.description}-${expense.category}
-      <button onclick="deleteExpenses(${expense.id})">Delete</button>
-    </li>`).join('');
-}
+app.get('/user/editExpenses/:eID', async (req, res, next) => {
+  try {
+    const eID = req.params.eID;
+    const expense = await Expense.findByPk(eID);
+
+    if (!expense) {
+      return res.status(404).json({ success: false, message: 'Expense not found.' });
+    }
+
+    res.json(expense);
+  } catch (err) {
+    console.log('Error during fetching expense for editing:', err);
+    return res.status(500).json({ success: false, message: 'Error during fetching expense for editing' });
+  }
+});
 
 sequelize.sync()
   .then(() => {

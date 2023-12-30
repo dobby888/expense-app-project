@@ -8,10 +8,8 @@ const express = require('express');
 
 const router = express.Router();
 
-router.get('/user/signUp', signUpController.getSignUp);
+router.get('/user/auth', signUpController.getAuth);
 
-router.post('/user/signUp', signUpController.postSignUp);
-
-router.post('/user/signUp', signUpController.postSignUp);
+router.post('/user/auth', signUpController.postAuth);
 
 module.exports = router; 
